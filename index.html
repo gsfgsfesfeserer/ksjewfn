@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>АНТИ КЛАУД 2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: #0a0a0a; color: #fff;
+    height: 100vh; overflow: hidden; display: flex;
+  }
+  .sidebar {
+    width: 280px; background: #0f0f0f;
+    border-right: 1px solid rgba(255,107,0,0.15);
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .logo-area { padding: 20px 15px; display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: #ff6b00; display: flex; align-items: center; justify-content: center;
+    animation: logoPulse 3s ease-in-out infinite;
+  }
+  .logo svg { width: 36px; height: 36px; }
+  @keyframes logoPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,107,0,0.4); }
+    50% { box-shadow: 0 0 35px rgba(255,107,0,0.9); }
+  }
+  .logo-text h1 { font-size: 18px; color: #ff6b00; letter-spacing: 1px; font-weight: 800; }
+  .new-chat-btn {
+    margin: 0 15px 15px; padding: 14px;
+    background: #ff6b00; color: #000; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s; font-family: inherit;
+  }
+  .new-chat-btn:hover { background: #ffa040; box-shadow: 0 0 25px rgba(255,107,0,0.5); }
+  .model-select-area { padding: 0 15px 10px; }
+  .model-select-area label {
+    display: block; font-size: 11px; color: #888;
+    font-weight: 700; margin-bottom: 5px; letter-spacing: 1px;
+  }
+  .model-select {
+    width: 100%; padding: 10px; background: #1f1f1f; color: #ff6b00;
+    border: 2px solid #2a2a2a; border-radius: 8px;
+    font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; outline: none;
+  }
+  .model-select:focus { border-color: #ff6b00; }
+  .model-desc { padding: 0 15px 15px; font-size: 10px; color: #888; }
+  .chat-list-label {
+    padding: 10px 20px 5px; font-size: 11px; color: #888;
+    font-weight: 700; letter-spacing: 1px;
+  }
+  .chat-list { flex: 1; overflow-y: auto; padding: 0 10px; }
+  .chat-item {
+    padding: 12px 15px; margin: 2px 0; border-radius: 8px;
+    color: #888; cursor: pointer; font-size: 13px; transition: all 0.2s;
+  }
+  .chat-item:hover { background: #1f1f1f; color: #fff; }
+  .chat-item.active { background: #141414; color: #fff; border-left: 3px solid #ff6b00; }
+  .site-btn {
+    margin: 15px; padding: 12px; background: transparent; color: #ff6b00;
+    border: 2px solid #ff6b00; border-radius: 8px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s; font-family: inherit; text-align: center;
+  }
+  .site-btn:hover { background: rgba(255,107,0,0.1); }
+  .main { flex: 1; display: flex; flex-direction: column; background: #0a0a0a; }
+  .top-bar {
+    height: 70px; background: #141414; display: flex;
+    align-items: center; justify-content: space-between; padding: 0 25px;
+    border-bottom: 1px solid rgba(255,107,0,0.15);
+  }
+  .chat-title { font-size: 16px; font-weight: 700; }
+  .status-bar {
+    height: 36px; background: #141414; display: flex;
+    align-items: center; justify-content: center; font-size: 11px;
+    color: #ffa040; border-bottom: 1px solid rgba(255,107,0,0.1);
+  }
+  .messages {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .bubble {
+    max-width: 80%; padding: 14px 18px; border-radius: 14px;
+    font-size: 14px; line-height: 1.5; word-wrap: break-word;
+    animation: fadeIn 0.3s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .bubble.user { align-self: flex-end; background: #1f1f1f; color: #fff; }
+  .bubble.ai {
+    align-self: flex-start; background: #141414; color: #ffa040;
+    border-left: 3px solid #ff6b00;
+  }
+  .bubble.ai img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: block; }
+  .bubble.ai pre {
+    background: #000; padding: 12px; border-radius: 8px;
+    overflow-x: auto; margin-top: 8px; color: #ffa040; font-size: 12px;
+    white-space: pre-wrap;
+  }
+  .input-area {
+    padding: 15px 20px; background: #141414;
+    border-top: 1px solid rgba(255,107,0,0.15);
+  }
+  .input-row { display: flex; gap: 10px; }
+  .input-row input {
+    flex: 1; padding: 14px 18px; background: #1f1f1f; color: #fff;
+    border: 2px solid #ff6b00; border-radius: 12px;
+    font-size: 14px; font-family: inherit; outline: none;
+  }
+  .input-row input::placeholder { color: #666; }
+  .send-btn {
+    width: 55px; background: #ff6b00; color: #000; border: none;
+    border-radius: 12px; font-size: 22px; font-weight: 700;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .send-btn:hover { background: #ffa040; box-shadow: 0 0 20px rgba(255,107,0,0.5); }
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed; left: -280px; top: 0; bottom: 0;
+      z-index: 100; transition: left 0.3s;
+    }
+    .sidebar.open { left: 0; }
+    .mobile-menu-btn {
+      display: block !important; background: transparent;
+      border: none; color: #ff6b00; font-size: 24px;
+      cursor: pointer; padding: 5px 10px;
+    }
+  }
+  .mobile-menu-btn { display: none; }
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2 L13 8 L12 10 L11 8 Z M12 22 L13 16 L12 14 L11 16 Z
+                 M2 12 L8 13 L10 12 L8 11 Z M22 12 L16 13 L14 12 L16 11 Z
+                 M5 5 L10 9 L11 10 L9 8 Z M19 19 L14 15 L13 14 L15 16 Z
+                 M19 5 L15 10 L14 11 L16 9 Z M5 19 L9 14 L10 13 L8 15 Z" fill="#000"/>
+        <circle cx="12" cy="12" r="9" stroke="#e53935" stroke-width="2.5"/>
+        <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="#e53935" stroke-width="2.5"/>
+      </svg>
+    </div>
+    <div class="logo-text"><h1>АНТИ КЛАУД</h1></div>
+  </div>
+  <button class="new-chat-btn" onclick="newChat()">+ НОВЫЙ ЧАТ</button>
+  <div class="model-select-area">
+    <label>МОДЕЛЬ</label>
+    <select class="model-select" id="modelSelect" onchange="changeModel()">
+      <option value="zero1v">Zero 1V</option>
+      <option value="zero2v7b+">Zero 2V7B+</option>
+      <option value="ongo3v">Ongo 3V</option>
+      <option value="ongo2">Ongo 2</option>
+    </select>
+  </div>
+  <div class="model-desc" id="modelDesc"></div>
+  <div class="chat-list-label">ЧАТЫ</div>
+  <div class="chat-list" id="chatList"></div>
+  <button class="site-btn" onclick="window.open('https://gentle-brioche-d4a5ba.netlify.app', '_blank')">ОТКРЫТЬ САЙТ</button>
+</div>
+
+<div class="main">
+  <div class="top-bar">
+    <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <div class="chat-title" id="chatTitle">Чат 1</div>
+  </div>
+  <div class="status-bar" id="statusBar">Готово. Пиши.</div>
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <div class="input-row">
+      <input type="text" id="input" placeholder="Напиши, нарисуй, сделай приложение..." onkeydown="if(event.key==='Enter') send()">
+      <button class="send-btn" onclick="send()">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== БИБЛИОТЕКА ПРОМПТОВ =====
+const PROMPT_LIBRARY = {
+  calculator: { name: "Калькулятор", prompt: "Create a fully functional calculator as a single HTML file. Modern dark theme with orange accents, all operations, responsive, CSS Grid." },
+  timer: { name: "Таймер", prompt: "Create a stopwatch and timer as a single HTML file. Start, stop, reset, lap. Dark theme with orange accents, milliseconds." },
+  notes: { name: "Заметки", prompt: "Create a notes app as a single HTML file. Add, edit, delete, localStorage, search. Dark theme with orange accents, card grid." },
+  weather: { name: "Погода", prompt: "Create a weather app as a single HTML file. Show current weather, temperature, humidity. Dark theme with orange accents." },
+  snake: { name: "Игра Змейка", prompt: "Create a Snake game as a single HTML file with Canvas. Score, high score, game over, restart. Arrow keys + WASD + touch. Dark theme with orange snake." },
+  tetris: { name: "Тетрис", prompt: "Create a Tetris game as a single HTML file with Canvas. Score, levels, next piece, pause. Dark theme with orange/neon pieces." },
+  pong: { name: "Пинг-понг", prompt: "Create a Pong game as a single HTML file. Two players W/S and arrows. Score, win screen. Dark theme with orange ball." },
+  memory: { name: "Игра Память", prompt: "Create a Memory card game as a single HTML file. Grid, flip animation, moves, timer, win screen. Dark theme orange accents." },
+  tictactoe: { name: "Крестики-нолики", prompt: "Create Tic Tac Toe as a single HTML file. Play vs computer (minimax) or 2 players. Win detection, score, restart. Dark theme with orange X." },
+  password_gen: { name: "Генератор паролей", prompt: "Create a password generator as a single HTML file. Length slider, options, copy, strength indicator. Dark theme orange accents." },
+  qr_gen: { name: "QR-код генератор", prompt: "Create a QR code generator as a single HTML file. Use qrcode.js CDN. Input text, generate QR, download PNG. Dark theme orange accents." },
+  color_picker: { name: "Подбор цветов", prompt: "Create a color palette generator as a single HTML file. Random palettes, save, copy hex, gradient preview. Dark theme orange accents." },
+  landing: { name: "Лендинг", prompt: "Create a modern landing page as a single HTML file. Hero, features, pricing, testimonials, footer. Dark theme orange accents, animations, responsive." },
+  portfolio: { name: "Портфолио", prompt: "Create a portfolio website as a single HTML file. Hero, about, projects, skills, contact. Dark theme orange accents, animations, responsive." },
+  todo: { name: "Список дел", prompt: "Create a todo list as a single HTML file. Add, complete, delete, filter, localStorage, clear completed. Dark theme orange accents." },
+  converter: { name: "Конвертер валют", prompt: "Create a currency converter as a single HTML file. Select currencies, rates, swap. Dark theme orange accents." },
+  chat: { name: "Чат-комната", prompt: "Create a chat room UI as a single HTML file. Send messages, bubbles, timestamps, username, localStorage. Dark theme orange accents." },
+  gallery: { name: "Галерея", prompt: "Create an image gallery as a single HTML file. Grid, lightbox, next/prev, captions. Placeholder images. Dark theme orange accents." },
+  quiz: { name: "Викторина", prompt: "Create a quiz app as a single HTML file. Multiple choice, score, progress, results, restart. Dark theme orange accents." },
+  music: { name: "Плеер", prompt: "Create a music player UI as a single HTML file. Play/pause, next/prev, progress, volume, playlist. HTML5 Audio. Dark theme orange accents." }
+};
+
+// ===== ТРИГГЕРЫ =====
+const IMAGE_TRIGGERS = ["нарисуй", "картинк", "изображен", "draw", "image", "picture"];
+const APP_TRIGGERS = ["сделай приложение", "создай приложение", "сделай игру", "создай игру",
+                      "сделай калькулятор", "создай калькулятор", "сделай сайт", "создай сайт",
+                      "сделай таймер", "сделай заметки", "создай игру", "build app", "create app"];
+const CODE_TRIGGERS = ["напиши код", "код на", "напиши программу", "напиши функцию",
+                       "напиши класс", "напиши скрипт", "write code", "code for", "function",
+                       "python", "javascript", "html код"];
+
+// ===== МОДЕЛИ =====
+const MODELS = {
+  zero1v: { full_name: "Zero 1V", can_text: true, can_image: false, can_app: false, can_code: false },
+  "zero2v7b+": { full_name: "Zero 2V7B+", can_text: true, can_image: true, can_app: false, can_code: true },
+  ongoing3v: { full_name: "Ongo 3V", can_text: true, can_image: true, can_app: true, can_code: true },
+  ongoing2: { full_name: "Ongo 2", can_text: false, can_image: false, can_app: true, can_code: true }
+};
+
+let chats = [];
+let currentChatId = null;
+let chatCounter = 0;
+
+// ===== POLLINATIONS =====
+async function pollinationsText(prompt, system) {
+  const fullPrompt = system ? system + "\n\n" + prompt : prompt;
+  const url = "https://text.pollinations.ai/" + encodeURIComponent(fullPrompt) + "?model=openai&seed=" + Math.floor(Math.random() * 1000000);
+  const res = await fetch(url);
+  let text = await res.text();
+  if (!text || text.trim().length < 2 || text.trim() === "0") {
+    text = "Не удалось получить ответ. Попробуй ещё раз.";
+  }
+  return text;
+}
+
+function pollinationsImage(prompt) {
+  return "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt) + "?width=768&height=768&nologo=true&seed=" + Math.floor(Math.random() * 1000000);
+}
+
+// ===== ПОИСК ШАБЛОНА =====
+function findTemplate(query) {
+  const q = query.toLowerCase();
+  for (const [key, tmpl] of Object.entries(PROMPT_LIBRARY)) {
+    if (q.includes(key) || q.includes(tmpl.name.toLowerCase())) return tmpl;
+  }
+  for (const [key, tmpl] of Object.entries(PROMPT_LIBRARY)) {
+    const words = tmpl.name.toLowerCase().split(/\s+/);
+    if (words.some(w => w.length > 3 && q.includes(w))) return tmpl;
+  }
+  return null;
+}
+
+// ===== ЧАТЫ =====
+function newChat() {
+  chatCounter++;
+  const chat = { id: chatCounter, name: "Чат " + chatCounter, messages: [], modelKey: "ongo3v" };
+  chats.push(chat);
+  currentChatId = chat.id;
+  renderChatList();
+  renderMessages();
+  document.getElementById("chatTitle").textContent = chat.name;
+}
+
+function renderChatList() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  chats.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "chat-item" + (c.id === currentChatId ? " active" : "");
+    div.textContent = c.name;
+    div.onclick = () => switchChat(c.id);
+    list.appendChild(div);
+  });
+}
+
+function switchChat(id) {
+  currentChatId = id;
+  const chat = chats.find(c => c.id === id);
+  document.getElementById("chatTitle").textContent = chat.name;
+  document.getElementById("modelSelect").value = chat.modelKey;
+  changeModel();
+  renderChatList();
+  renderMessages();
+}
+
+function changeModel() {
+  const key = document.getElementById("modelSelect").value;
+  const m = MODELS[key] || MODELS["ongo3v"];
+  const caps = [];
+  if (m.can_text) caps.push("текст");
+  if (m.can_image) caps.push("картинки");
+  if (m.can_code) caps.push("код");
+  if (m.can_app) caps.push("приложения");
+  document.getElementById("modelDesc").textContent = m.full_name + " · " + caps.join(" + ");
+  const chat = chats.find(c => c.id === currentChatId);
+  if (chat) chat.modelKey = key;
+}
+
+function renderMessages() {
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+  chat.messages.forEach(m => addBubble(m.role, m.text, m.imageUrl, m.appCode));
+  box.scrollTop = box.scrollHeight;
+}
+
+function addBubble(role, text, imageUrl, appCode) {
+  const box = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "bubble " + (role === "user" ? "user" : "ai");
+
+  if (role === "user") {
+    div.textContent = "ВЫ: " + text;
+  } else {
+    if (text && text.startsWith("КОД:")) {
+      div.innerHTML = "АНТИ КЛАУД:<pre>" + escapeHtml(text.slice(4).trim()) + "</pre>";
+    } else {
+      div.textContent = "АНТИ КЛАУД: " + text;
+    }
+  }
+
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    div.appendChild(img);
+  }
+
+  if (appCode) {
+    const pre = document.createElement("pre");
+    pre.textContent = appCode.substring(0, 300) + "\n\n... (полный код в кнопках ниже)";
+    div.appendChild(pre);
+
+    const openBtn = document.createElement("button");
+    openBtn.textContent = "▶ Открыть";
+    openBtn.style.cssText = "margin-top:10px;padding:10px 20px;background:#ff6b00;color:#000;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;";
+    openBtn.onclick = () => openApp(appCode);
+    div.appendChild(openBtn);
+
+    const dlBtn = document.createElement("button");
+    dlBtn.textContent = "💾 Скачать";
+    dlBtn.style.cssText = "margin-top:10px;margin-left:8px;padding:10px 20px;background:transparent;color:#ff6b00;border:2px solid #ff6b00;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;";
+    dlBtn.onclick = () => downloadApp(appCode);
+    div.appendChild(dlBtn);
+  }
+
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function openApp(code) {
+  const blob = new Blob([code], { type: 'text/html' });
+  window.open(URL.createObjectURL(blob), '_blank');
+}
+
+function downloadApp(code) {
+  const blob = new Blob([code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'anticloud_app.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// ===== ОТПРАВКА =====
+async function send() {
+  const input = document.getElementById("input");
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = "";
+
+  const chat = chats.find(c => c.id === currentChatId);
+  const modelKey = chat.modelKey;
+  const m = MODELS[modelKey] || MODELS["ongo3v"];
+
+  chat.messages.push({ role: "user", text: q });
+  addBubble("user", q);
+
+  const ql = q.toLowerCase();
+  const wantsImage = IMAGE_TRIGGERS.some(t => ql.includes(t));
+  const wantsApp = APP_TRIGGERS.some(t => ql.includes(t));
+  const wantsCode = CODE_TRIGGERS.some(t => ql.includes(t));
+  const template = findTemplate(q);
+
+  // Блокировки
+  if (wantsImage && !m.can_image) {
+    addBubble("ai", "⛔ " + m.full_name + " не умеет картинки. Переключись на Zero 2V7B+ или Ongo 3V.");
+    chat.messages.push({ role: "ai", text: "⛔ Не умеет картинки" }); return;
+  }
+  if (wantsApp && !m.can_app) {
+    addBubble("ai", "⛔ " + m.full_name + " не умеет приложения. Переключись на Ongo 3V или Ongo 2.");
+    chat.messages.push({ role: "ai", text: "⛔ Не умеет приложения" }); return;
+  }
+  if (wantsCode && !m.can_code) {
+    addBubble("ai", "⛔ " + m.full_name + " не умеет код. Переключись на Zero 2V7B+ или Ongo 3V.");
+    chat.messages.push({ role: "ai", text: "⛔ Не умеет код" }); return;
+  }
+
+  // ПРИЛОЖЕНИЕ
+  if (wantsApp && m.can_app) {
+    if (!template) {
+      addBubble("ai", "📱 Не нашёл шаблон. Попробуй: калькулятор, таймер, заметки, змейка, тетрис, пинг-понг, портфолио...");
+      chat.messages.push({ role: "ai", text: "Не нашёл шаблон" }); return;
+    }
+    document.getElementById("statusBar").textContent = "📱 Собираю: " + template.name + "...";
+    addBubble("ai", "📱 Шаблон: " + template.name + ". Собираю...");
+    try {
+      const system = "Ты — генератор HTML-приложений. Создай готовый HTML файл (HTML+CSS+JS в одном). Только код, без объяснений. Начни с <!DOCTYPE html>, закончи </html>.";
+      const answer = await pollinationsText(template.prompt + "\n\nЗапрос: " + q, system);
+      const codeMatch = answer.match(/```html\n?([\s\S]*?)```/) || answer.match(/```\n?([\s\S]*?)```/) || answer.match(/(<!DOCTYPE html>[\s\S]*<\/html>)/i);
+      const appCode = codeMatch ? (codeMatch[1] || codeMatch[0]) : answer;
+      addBubble("ai", "✅ Готово: " + template.name, null, appCode);
+      chat.messages.push({ role: "ai", text: "Приложение: " + template.name, appCode: appCode });
+      document.getElementById("statusBar").textContent = "Готово.";
+    } catch (e) {
+      document.getElementById("statusBar").textContent = "Ошибка: " + e.message;
+    }
+    return;
+  }
+
+  // КОД
+  if (wantsCode && m.can_code) {
+    document.getElementById("statusBar").textContent = "💻 Пишу код...";
+    addBubble("ai", "💻 Пишу код...");
+    try {
+      const system = "Ты — программист. Пиши только код без объяснений. Оформляй в блоки ```язык. Если язык не указан — Python.";
+      const answer = await pollinationsText(q, system);
+      const lastBubble = document.querySelectorAll(".bubble.ai")[document.querySelectorAll(".bubble.ai").length - 1];
+      if (lastBubble) lastBubble.innerHTML = "АНТИ КЛАУД:<pre>" + escapeHtml(answer) + "</pre>";
+      chat.messages.push({ role: "ai", text: "КОД:" + answer });
+      document.getElementById("statusBar").textContent = "Готово.";
+    } catch (e) {
+      document.getElementById("statusBar").textContent = "Ошибка: " + e.message;
+    }
+    return;
+  }
+
+  // КАРТИНКА
+  if (wantsImage && m.can_image) {
+    document.getElementById("statusBar").textContent = "🎨 Рисую...";
+    addBubble("ai", "🎨 Рисую...");
+    const imgUrl = pollinationsImage(q);
+    setTimeout(() => {
+      addBubble("ai", "Вот картинка:", imgUrl);
+      chat.messages.push({ role: "ai", text: "Картинка", imageUrl: imgUrl });
+      document.getElementById("statusBar").textContent = "Готово.";
+    }, 1500);
+    return;
+  }
+
+  // ТЕКСТ
+  document.getElementById("statusBar").textContent = "💭 Думаю...";
+  addBubble("ai", "💭 Думаю...");
+  try {
+    let system = "";
+    if (modelKey === "zero1v") system = "Ты — Zero 1V. Быстрый ассистент. Отвечай кратко.";
+    else if (modelKey === "zero2v7b+") system = "Ты — Zero 2V7B+. Умеешь отвечать и писать код.";
+    else system = "Ты — Ongo 3V. Умеешь всё.";
+    let answer = "", attempts = 0;
+    while (attempts < 3 && (!answer || answer.trim().length < 2 || answer.trim() === "0")) {
+      answer = await pollinationsText(q, system);
+      attempts++;
+      if (answer && answer.trim().length > 2 && answer.trim() !== "0") break;
+      await new Promise(r => setTimeout(r, 500));
+    }
+    if (!answer || answer.trim().length < 2) answer = "Pollinations не отвечает. Попробуй ещё раз.";
+    const lastBubble = document.querySelectorAll(".bubble.ai")[document.querySelectorAll(".bubble.ai").length - 1];
+    if (lastBubble) lastBubble.textContent = "АНТИ КЛАУД: " + answer;
+    chat.messages.push({ role: "ai", text: answer });
+    document.getElementById("statusBar").textContent = "Готово.";
+  } catch (e) {
+    document.getElementById("statusBar").textContent = "Ошибка: " + e.message;
+  }
+}
+
+// ===== СТАРТ =====
+newChat();
+changeModel();
+</script>
+
+</body>
+</html>
